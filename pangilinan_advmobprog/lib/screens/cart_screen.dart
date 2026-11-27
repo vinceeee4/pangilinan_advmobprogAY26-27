@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../constants.dart';
 import '../models/cart.dart';
 import '../services/cart_service.dart';
+import '../services/user_service.dart';
 import '../widgets/custom_text.dart';
 import 'detail_screen.dart';
 
@@ -36,7 +37,9 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   /// Which user's cart to show.
-  Future<int> _resolveUserId() async => kDefaultUserId;
+  // Lab 4 - ENHANCEMENT 3: use the id of the logged-in user that was
+  // saved in SharedPreferences by UserService.
+  Future<int> _resolveUserId() async => (await UserService().getUser()).id;
 
   Future<Cart?> _loadCart() async {
     final userId = await _resolveUserId();

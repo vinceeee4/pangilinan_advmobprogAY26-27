@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../constants.dart';
 import 'cart_screen.dart';
 import 'product_screen.dart';
+import 'profile_screen.dart';
 
 import '../widgets/custom_text.dart';
 
@@ -37,6 +38,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// First name of the logged-in user, passed as route arguments by the
+  /// splash / sign-in screen (used as the Profile app-bar title).
+  String _firstName(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map && (args['firstName'] ?? '').toString().isNotEmpty) {
+      return args['firstName'].toString();
+    }
+    return widget.username.isNotEmpty ? widget.username : 'Profile';
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -51,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   text: (_selectedIndex == _cartIndex)
                       ? 'Cart'
                       : (_selectedIndex == 2)
-                      ? 'Profile'
+                      ? _firstName(context)
                       : 'Home',
                   fontSize: 20.sp,
                   fontWeight: FontWeight.w600,
@@ -70,7 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ProductScreen(),
             // ENHANCEMENT 1: new Cart page rendering the /carts endpoint
             CartScreen(),
-            _PlaceholderPage(icon: Icons.person, label: 'Profile coming soon'),
+            // Lab 4 - ENHANCEMENT 3: profile of the saved user
+            ProfileScreen(),
           ],
           onPageChanged: (page) {
             setState(() {

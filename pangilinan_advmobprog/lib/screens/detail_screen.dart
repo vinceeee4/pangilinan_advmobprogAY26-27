@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../constants.dart';
 import '../models/product.dart';
 import '../services/cart_service.dart';
+import '../services/user_service.dart';
 import '../services/product_service.dart';
 import '../widgets/custom_text.dart';
 
@@ -33,7 +34,8 @@ class _DetailScreenState extends State<DetailScreen> {
   bool _adding = false;
 
   /// Which user the product is added for.
-  Future<int> _resolveUserId() async => kDefaultUserId;
+  // Lab 4: the logged-in user's id saved in SharedPreferences.
+  Future<int> _resolveUserId() async => (await UserService().getUser()).id;
 
   // Lab 3 - ENHANCEMENT 3: POST /carts/add with this product + quantity.
   Future<void> _addToCart(Product product) async {

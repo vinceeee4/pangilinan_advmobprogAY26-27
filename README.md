@@ -78,3 +78,32 @@ The layers stay the same (models → services → screens → widgets), but the 
 - **Enhancement 1** – `CartScreen` renders the cart endpoint; each item is tappable and opens `DetailScreen`.
 - **Enhancement 2** – Chat moved from the bottom navigation to a `FloatingActionButton` that hides on the Cart page.
 - **Enhancement 3** – The cart is loaded by user id (`GET /carts/user/{id}`), and the detail page has a quantity picker + *Add to cart* button that calls `POST /carts/add`.
+
+## Lab Activity 4: API Part III — discussion
+
+**How the user model, service and screens interact to reach the profile**
+
+1. **`SignInScreen`** collects the username and password, validates the form and calls `UserService.loginUser()`.
+2. **`UserService.loginUser()`** sends `POST /auth/login` (`{ username, password, expiresInMins: 60 }`). On `200` it decodes the JSON (id, username, email, firstName, lastName, gender, image, accessToken, refreshToken) and calls `saveUserData()`.
+3. **`saveUserData()`** turns the map into the **`User` model** (`User.fromJson`) and writes each field into **SharedPreferences**, so the data survives closing the app.
+4. **`SplashScreen`** runs `_checkAuthentication()` on every launch: `UserService.isLoggedIn()` checks for a saved `accessToken`/`token`. If one exists it reads `getUserData()` and goes straight to `/home`; otherwise it goes to `/signin`. That is *persistent authentication*.
+5. **`ProfileScreen`** calls `UserService.getUser()`, which reads the saved values and returns a `User` object. A `FutureBuilder` renders the avatar (`image`), full name, `@username`, email, gender and user id. *Log Out* calls `UserService.logout()` (clears SharedPreferences) and navigates to `/signin` with `pushNamedAndRemoveUntil` so the user can't go "back" into the app.
+
+**Updated design pattern**
+
+- **models/** now has `user.dart` next to `product.dart` and `cart.dart`.
+- **services/** has `user_service.dart`, which handles both the **remote** API (`/auth/login`) and **local** storage (SharedPreferences). Screens never touch SharedPreferences directly.
+- **screens/** gained `splash_screen.dart`, `signin_screen.dart` and `profile_screen.dart`.
+- Routing now starts at `/` (splash) → `/signin` or `/home`, plus `/settings`.
+
+The pattern is still Model → Service → Screen, but the service layer now also acts as a small **repository** that decides whether data comes from the network or from the device.
+
+**Rendering the cart by the saved user id**
+
+`CartScreen` no longer uses a hard-coded user. Before loading it calls `UserService().getUser()` and reads `user.id` (the id saved at login), then calls `CartService.getCartByUserId(user.id)` → `GET /carts/user/{id}`. The same saved id is used by `DetailScreen` when it calls `POST /carts/add`, so items are added to the logged-in user's cart. Logging in as a different DummyJSON user shows that user's cart (or "Your cart is empty" if they don't have one).
+
+**Enhancements implemented**
+
+- **Enhancement 1** – Custom animated splash screen (gradient, logo fade/scale, loader) that implements persistent authentication.
+- **Enhancement 2** – Custom sign-in screen with form validation, show/hide password, loading state, error SnackBar and a demo-account hint.
+- **Enhancement 3** – `User` model + `ProfileScreen` UI (avatar, name, username, email, gender, id, log out) and the cart rendered by the saved user id.
