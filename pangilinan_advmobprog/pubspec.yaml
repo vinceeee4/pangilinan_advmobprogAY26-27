@@ -1,5 +1,5 @@
 name: pangilinan_advmobprog
-description: "Lab Activity 1 - Ephemeral vs. App State"
+description: "Advanced Mobile Programming - Lab Activities"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_dotenv: ^5.2.1
+  flutter_screenutil: ^5.9.3
+  http: ^1.5.0
   provider: ^6.1.5
 
 dev_dependencies:
@@ -17,4 +20,12 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 flutter:
+  assets:
+    - assets/
+    - assets/icons/
+    - assets/images/
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
   uses-material-design: true

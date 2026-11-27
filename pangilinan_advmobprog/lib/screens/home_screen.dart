@@ -1,0 +1,112 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'product_screen.dart';
+
+import '../widgets/custom_text.dart';
+
+class HomeScreen extends StatefulWidget {
+  final String username;
+  const HomeScreen({super.key, this.username = ''});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+  final PageController _pageController = PageController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          elevation: 2,
+          title: (_selectedIndex == 0)
+              ? Image.asset('assets/images/app_logo.png', height: 36.h)
+              : CustomText(
+                  text: (_selectedIndex == 1)
+                      ? 'Chat'
+                      : (_selectedIndex == 2)
+                      ? 'Profile'
+                      : 'Home',
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+          actions: [
+            // ENHANCEMENT 3: the settings icon opens the Settings page,
+            // where the dark/light mode switch now lives.
+            IconButton(
+              icon: Icon(Icons.settings, size: 24.sp),
+              onPressed: () => Navigator.pushNamed(context, '/settings'),
+            ),
+          ],
+        ),
+        body: PageView(
+          physics: const NeverScrollableScrollPhysics(),
+          controller: _pageController,
+          // One page per bottom-navigation item (Chat and Profile are
+          // placeholders until later lab activities).
+          children: const <Widget>[
+            ProductScreen(),
+            _PlaceholderPage(icon: Icons.chat, label: 'Chat coming soon'),
+            _PlaceholderPage(icon: Icons.person, label: 'Profile coming soon'),
+          ],
+          onPageChanged: (page) {
+            setState(() {
+              _selectedIndex = page;
+            });
+          },
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          showSelectedLabels: false, //selected item
+          showUnselectedLabels: false, //unselected item
+          onTap: _onTappedBar,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.shop_2), label: 'Shop'),
+            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          ],
+          currentIndex: _selectedIndex,
+        ),
+      ),
+    );
+  }
+
+  void _onTappedBar(int value) {
+    setState(() {
+      _selectedIndex = value;
+    });
+    _pageController.jumpToPage(value);
+  }
+}
+
+/// Simple centered icon + label used for pages that are not built yet.
+class _PlaceholderPage extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _PlaceholderPage({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 48.sp, color: Colors.grey),
+          SizedBox(height: 8.h),
+          CustomText(text: label, fontSize: 14.sp, color: Colors.grey),
+        ],
+      ),
+    );
+  }
+}
