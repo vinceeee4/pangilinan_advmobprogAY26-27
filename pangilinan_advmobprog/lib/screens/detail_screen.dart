@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../constants.dart';
 import '../models/product.dart';
+import '../services/cart_service.dart';
 import '../services/product_service.dart';
 import '../widgets/custom_text.dart';
 
@@ -26,6 +27,41 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   late final Future<Product> _productFuture;
   int _imageIndex = 0;
+
+  // Lab 3 - ENHANCEMENT 3: add-to-cart state
+  int _quantity = 1;
+  bool _adding = false;
+
+  /// Which user the product is added for.
+  Future<int> _resolveUserId() async => kDefaultUserId;
+
+  // Lab 3 - ENHANCEMENT 3: POST /carts/add with this product + quantity.
+  Future<void> _addToCart(Product product) async {
+    setState(() => _adding = true);
+    try {
+      final userId = await _resolveUserId();
+      final cart = await CartService().addToCart(
+        userId: userId,
+        productId: product.id,
+        quantity: _quantity,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Added $_quantity × ${product.title} to cart '
+            '(cart #${cart.id}, total \$${cart.total.toStringAsFixed(2)})',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Could not add to cart: $e')));
+    } finally {
+      if (mounted) setState(() => _adding = false);
+    }
+  }
 
   @override
   void initState() {
@@ -54,6 +90,69 @@ class _DetailScreenState extends State<DetailScreen> {
             );
           }
           return _buildDetails(context, snapshot.data!);
+        },
+      ),
+      // Lab 3 - ENHANCEMENT 3: quantity selector + Add to cart button
+      bottomNavigationBar: FutureBuilder<Product>(
+        future: _productFuture,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const SizedBox.shrink();
+          final product = snapshot.data!;
+          return SafeArea(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
+              child: Row(
+                children: [
+                  IconButton.outlined(
+                    onPressed: _quantity > 1
+                        ? () => setState(() => _quantity--)
+                        : null,
+                    icon: const Icon(Icons.remove),
+                  ),
+                  SizedBox(
+                    width: 36.w,
+                    child: CustomText(
+                      text: '$_quantity',
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  IconButton.outlined(
+                    onPressed: () => setState(() => _quantity++),
+                    icon: const Icon(Icons.add),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: SizedBox(
+                      height: 48.h,
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: kAccent,
+                          foregroundColor: Colors.black,
+                        ),
+                        onPressed: _adding ? null : () => _addToCart(product),
+                        icon: _adding
+                            ? SizedBox(
+                                width: 18.w,
+                                height: 18.w,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.add_shopping_cart),
+                        label: CustomText(
+                          text: 'Add to cart',
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         },
       ),
     );
